@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TONGUE DRILL — Cognitive Hazard Trainer</title>
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #141416;
+      --surface2: #1c1c1f;
+      --border: #2a2a2e;
+      --text: #e8e8ea;
+      --muted: #8a8a93;
+      --accent: #c9a227;
+      --accent-dim: #8a7020;
+      --danger: #b33a3a;
+      --success: #3a8a5a;
+      --gap: #7a9ec9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      line-height: 1.45;
+      overflow-x: hidden;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 80px;
+    }
+
+    /* Header */
+    header {
+      padding: 20px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Screens */
+    .screen {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      padding: 20px;
+      animation: fade 0.25s ease;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Home */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .card:active {
+      background: var(--surface2);
+      border-color: var(--accent-dim);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .card.primary {
+      border-color: var(--accent-dim);
+      background: linear-gradient(145deg, #1a1810, var(--surface));
+    }
+
+    /* Exercise view */
+    .exercise-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .exercise-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .exercise-instruction {
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .timer-ring {
+      width: 220px;
+      height: 220px;
+      margin: 20px auto 28px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-ring svg {
+      position: absolute;
+      transform: rotate(-90deg);
+    }
+
+    .timer-ring circle {
+      fill: none;
+      stroke-width: 6;
+    }
+
+    .timer-bg {
+      stroke: var(--border);
+    }
+
+    .timer-progress {
+      stroke: var(--accent);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.3s linear;
+    }
+
+    .timer-display {
+      font-size: 48px;
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-display.small {
+      font-size: 28px;
+    }
+
+    .phase-label {
+      font-size: 13px;
+      color: var(--gap);
+      text-align: center;
+      margin-bottom: 8px;
+      min-height: 20px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 14px 24px;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0b;
+      flex: 1;
+      max-width: 200px;
+    }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid #4a2a2a;
+    }
+
+    /* Duration selector */
+    .duration-pills {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .pill {
+      padding: 8px 14px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .pill.active {
+      background: var(--accent);
+      color: #0a0a0b;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Log / Journal */
+    .log-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .log-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .log-text {
+      font-size: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      padding: 14px;
+      font-size: 15px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      margin-bottom: 16px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-dim);
+    }
+
+    /* Bottom nav */
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-inner {
+      max-width: 480px;
+      width: 100%;
+      display: flex;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 12px 0 10px;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      color: var(--accent);
+    }
+
+    .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    /* Modal / overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal h2 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* Intro / about */
+    .about-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .about-text p {
+      margin-bottom: 14px;
+    }
+
+    .about-text strong {
+      color: var(--text);
+    }
+
+    .quote {
+      border-left: 3px solid var(--accent);
+      padding-left: 14px;
+      margin: 18px 0;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    /* Result screen */
+    .result-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .result-value {
+      font-size: 36px;
+      font-weight: 300;
+      color: var(--accent);
+    }
+
+    .result-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .mt-12 { margin-top: 12px; }
+    .mt-20 { margin-top: 20px; }
+    .full { width: 100%; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">Tongue Drill</div>
+      <div class="sub">Cognitive Hazard Trainer</div>
+    </header>
+
+    <!-- HOME -->
+    <div id="screen-home" class="screen active">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="stat-streak">0</div>
+          <div class="stat-label">Streak</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-sessions">0</div>
+          <div class="stat-label">Sessions</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-longest">0s</div>
+          <div class="stat-label">Longest</div>
+        </div>
+      </div>
+
+      <div class="section-title">Start Drill</div>
+
+      <div class="card primary" onclick="startExercise('object')">
+        <div class="card-title">Object — No Name</div>
+        <div class="card-desc">Look at any nearby object. Refuse to name it. Hold the gap.</div>
+      </div>
+
+      <div class="card" onclick="startExercise('sound')">
+        <div class="card-title">Sound Field</div>
+        <div class="card-desc">Close eyes. Hear without labeling source or meaning.</div>
+      </div>
+
+      <div class="card" onclick="startExercise('body')">
+        <div class="card-title">Body Sensation</div>
+        <div class="card-desc">Feel one sensation. Drop the story about it.</div>
+      </div>
+
+      <div class="card" onclick="startExercise('thought')">
+        <div class="card-title">Thought Catch</div>
+        <div class="card-desc">Notice a thought arise. Do not continue it. Return to raw.</div>
+      </div>
+
+      <div class="card" onclick="startExercise('guided')">
+        <div class="card-title">Guided Protocol</div>
+        <div class="card-desc">4-stage progressive session (recommended daily).</div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div id="screen-setup" class="screen">
+      <div class="exercise-header">
+        <div class="exercise-name" id="setup-name">Object — No Name</div>
+        <div class="exercise-instruction" id="setup-instruction">Choose duration. The longer you hold without naming, the clearer the gap becomes.</div>
+      </div>
+
+      <div class="section-title" style="text-align:center">Duration</div>
+      <div class="duration-pills" id="duration-pills">
+        <div class="pill" data-sec="10">10s</div>
+        <div class="pill active" data-sec="30">30s</div>
+        <div class="pill" data-sec="60">60s</div>
+        <div class="pill" data-sec="120">2m</div>
+        <div class="pill" data-sec="300">5m</div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-ghost" onclick="showScreen('home')">Back</button>
+        <button class="btn-primary" onclick="beginTimer()">Begin</button>
+      </div>
+
+      <p class="hint">Pick any nearby thing. When the timer starts, refuse every label that arises.</p>
+    </div>
+
+    <!-- TIMER / ACTIVE -->
+    <div id="screen-active" class="screen">
+      <div class="phase-label" id="phase-label">Refuse to name</div>
+
+      <div class="timer-ring">
+        <svg width="220" height="220" viewBox="0 0 220 220">
+          <circle class="timer-bg" cx="110" cy="110" r="100"></circle>
+          <circle class="timer-progress" id="timer-circle" cx="110" cy="110" r="100"
+            stroke-dasharray="628.3" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="timer-display" id="timer-display">30</div>
+      </div>
+
+      <div class="exercise-instruction" id="active-instruction" style="text-align:center; margin-bottom: 24px;">
+        Look. Do not name. When a word appears, let it fall.
+      </div>
+
+      <div class="controls">
+        <button class="btn-danger" onclick="abortSession()">Abort</button>
+        <button class="btn-secondary" id="btn-complete" onclick="completeEarly()" style="display:none">I held the gap</button>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="screen-result" class="screen">
+      <div class="result-box">
+        <div class="result-value" id="result-time">30s</div>
+        <div class="result-label">held without naming</div>
+      </div>
+
+      <div class="section-title">What did you notice?</div>
+      <textarea id="journal-input" placeholder="The moment the label tried to return... the quality of the silence... anything that shifted."></textarea>
+
+      <div class="controls">
+        <button class="btn-primary full" onclick="saveSession()">Save & Return</button>
+      </div>
+      <button class="btn-ghost full mt-12" onclick="showScreen('home')">Skip note</button>
+    </div>
+
+    <!-- LOG -->
+    <div id="screen-log" class="screen">
+      <div class="section-title">Session History</div>
+      <div id="log-list"></div>
+      <p class="hint" id="log-empty">No sessions yet. The first gap is the hardest.</p>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="screen-about" class="screen">
+      <div class="about-text">
+        <p><strong>What this trains</strong></p>
+        <p>Language is a high-speed compression layer. It labels reality before you fully contact it. Most of the time the label arrives so fast that the raw experience is skipped.</p>
+        
+        <div class="quote">
+          Try not naming something for even ten seconds. The brain panics. It demands a category.
+        </div>
+
+        <p>This is the core drill from Chase Hughes’ experimental book <em>Tongue: A Cognitive Hazard</em>: create a deliberate gap between sensory input and the verbal overlay.</p>
+
+        <p><strong>How to practice</strong></p>
+        <p>1. Choose any object, sound, or sensation.<br>
+           2. Refuse every name, category, and story that arises.<br>
+           3. When the word appears, notice it and drop it.<br>
+           4. Stay with the raw field as long as you can.</p>
+
+        <p>Start short. The panic is normal. With repetition the gap widens and the internal static quiets.</p>
+
+        <p style="margin-top:24px; font-size:12px; color:var(--muted);">
+          This trainer is an independent practice tool inspired by the described mechanisms. It is not affiliated with Chase Hughes or NCI.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav>
+    <div class="nav-inner">
+      <button class="nav-btn active" data-screen="home" onclick="navTo('home')">
+        <span class="nav-icon">◎</span>
+        Drill
+      </button>
+      <button class="nav-btn" data-screen="log" onclick="navTo('log')">
+        <span class="nav-icon">≡</span>
+        Log
+      </button>
+      <button class="nav-btn" data-screen="about" onclick="navTo('about')">
+        <span class="nav-icon">?</span>
+        Why
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    // ========== STATE ==========
+    const state = {
+      currentExercise: null,
+      duration: 30,
+      remaining: 30,
+      timerId: null,
+      startTime: null,
+      isGuided: false,
+      guidedStage: 0,
+      longestGap: 0,
+      sessions: [],
+      streak: 0,
+      lastDate: null
+    };
+
+    const exercises = {
+      object: {
+        name: "Object — No Name",
+        instruction: "Pick any nearby object. When the timer starts, look at it and refuse every name that arises. Hold the gap.",
+        active: "Look. Do not name. When a word appears, let it fall."
+      },
+      sound: {
+        name: "Sound Field",
+        instruction: "Close your eyes. Let the sound field arrive. Do not name the source or attach meaning.",
+        active: "Hear only. No story. No source label."
+      },
+      body: {
+        name: "Body Sensation",
+        instruction: "Place attention on one clear physical sensation. Drop every story or evaluation about it.",
+        active: "Sensation only. No narrative. No preference."
+      },
+      thought: {
+        name: "Thought Catch",
+        instruction: "Sit quietly. When a thought appears, notice it as pure appearance and do not continue the sentence.",
+        active: "Thought arises. Do not finish it. Return to the space before the next word."
+      },
+      guided: {
+        name: "Guided Protocol",
+        instruction: "Four progressive stages. Object → Sound → Body → Open field. Stay with each stage fully.",
+        active: ""
+      }
+    };
+
+    const guidedStages = [
+      { label: "Stage 1 — Object", text: "Look at one object. Refuse its name for the full duration.", duration: 45 },
+      { label: "Stage 2 — Sound", text: "Close eyes. Sound field only. No labels.", duration: 45 },
+      { label: "Stage 3 — Body", text: "One clear sensation. No story about it.", duration: 45 },
+      { label: "Stage 4 — Open", text: "Rest in the space before the next word. Whatever arises, do not name.", duration: 60 }
+    ];
+
+    // ========== INIT ==========
+    function loadData() {
+      try {
+        const raw = localStorage.getItem('tongueDrill');
+        if (raw) {
+          const data = JSON.parse(raw);
+          state.sessions = data.sessions || [];
+          state.longestGap = data.longestGap || 0;
+          state.streak = data.streak || 0;
+          state.lastDate = data.lastDate || null;
+        }
+      } catch (e) {}
+      updateStats();
+      renderLog();
+    }
+
+    function saveData() {
+      localStorage.setItem('tongueDrill', JSON.stringify({
+        sessions: state.sessions,
+        longestGap: state.longestGap,
+        streak: state.streak,
+        lastDate: state.lastDate
+      }));
+    }
+
+    function updateStats() {
+      document.getElementById('stat-streak').textContent = state.streak;
+      document.getElementById('stat-sessions').textContent = state.sessions.length;
+      document.getElementById('stat-longest').textContent = state.longestGap + 's';
+    }
+
+    // ========== NAV ==========
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    function navTo(screen) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.nav-btn[data-screen="${screen}"]`).classList.add('active');
+      showScreen(screen);
+      if (screen === 'log') renderLog();
+    }
+
+    // ========== EXERCISE FLOW ==========
+    function startExercise(type) {
+      state.currentExercise = type;
+      state.isGuided = (type === 'guided');
+      state.guidedStage = 0;
+
+      if (type === 'guided') {
+        // Guided starts immediately with first stage
+        state.duration = guidedStages[0].duration;
+        beginTimer();
+        return;
+      }
+
+      const ex = exercises[type];
+      document.getElementById('setup-name').textContent = ex.name;
+      document.getElementById('setup-instruction').textContent = ex.instruction;
+      showScreen('setup');
+    }
+
+    // Duration pills
+    document.getElementById('duration-pills').addEventListener('click', (e) => {
+      if (e.target.classList.contains('pill')) {
+        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+        e.target.classList.add('active');
+        state.duration = parseInt(e.target.dataset.sec);
+      }
+    });
+
+    function beginTimer() {
+      if (state.isGuided) {
+        const stage = guidedStages[state.guidedStage];
+        state.duration = stage.duration;
+        document.getElementById('phase-label').textContent = stage.label;
+        document.getElementById('active-instruction').textContent = stage.text;
+      } else {
+        const ex = exercises[state.currentExercise];
+        document.getElementById('phase-label').textContent = "Refuse to name";
+        document.getElementById('active-instruction').textContent = ex.active;
+      }
+
+      state.remaining = state.duration;
+      state.startTime = Date.now();
+      updateTimerDisplay();
+      showScreen('active');
+
+      // Show "I held the gap" after a few seconds so user can end early if they want credit for longer
+      setTimeout(() => {
+        document.getElementById('btn-complete').style.display = 'inline-block';
+      }, 4000);
+
+      clearInterval(state.timerId);
+      state.timerId = setInterval(tick, 200);
+    }
+
+    function tick() {
+      const elapsed = (Date.now() - state.startTime) / 1000;
+      state.remaining = Math.max(0, state.duration - elapsed);
+      updateTimerDisplay();
+
+      if (state.remaining <= 0) {
+        clearInterval(state.timerId);
+        finishSession(state.duration);
+      }
+    }
+
+    function updateTimerDisplay() {
+      const display = document.getElementById('timer-display');
+      const circle = document.getElementById('timer-circle');
+      const total = state.duration;
+      const remaining = state.remaining;
+
+      if (remaining >= 60) {
+        const m = Math.floor(remaining / 60);
+        const s = Math.floor(remaining % 60);
+        display.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        display.classList.add('small');
+      } else {
+        display.textContent = Math.ceil(remaining);
+        display.classList.remove('small');
+      }
+
+      const circumference = 2 * Math.PI * 100;
+      const offset = circumference * (1 - remaining / total);
+      circle.style.strokeDashoffset = offset;
+    }
+
+    function completeEarly() {
+      clearInterval(state.timerId);
+      const held = Math.round(state.duration - state.remaining);
+      finishSession(held);
+    }
+
+    function abortSession() {
+      clearInterval(state.timerId);
+      document.getElementById('btn-complete').style.display = 'none';
+      showScreen('home');
+    }
+
+    function finishSession(heldSeconds) {
+      document.getElementById('btn-complete').style.display = 'none';
+
+      if (state.isGuided && state.guidedStage < guidedStages.length - 1) {
+        // Next guided stage
+        state.guidedStage++;
+        const stage = guidedStages[state.guidedStage];
+        state.duration = stage.duration;
+        document.getElementById('phase-label').textContent = stage.label;
+        document.getElementById('active-instruction').textContent = stage.text;
+        state.remaining = state.duration;
+        state.startTime = Date.now();
+        updateTimerDisplay();
+        setTimeout(() => {
+          document.getElementById('btn-complete').style.display = 'inline-block';
+        }, 3000);
+        clearInterval(state.timerId);
+        state.timerId = setInterval(tick, 200);
+        return;
+      }
+
+      // End of session
+      document.getElementById('result-time').textContent = heldSeconds + 's';
+      document.getElementById('journal-input').value = '';
+      showScreen('result');
+
+      // Update longest
+      if (heldSeconds > state.longestGap) {
+        state.longestGap = heldSeconds;
+      }
+    }
+
+    function saveSession() {
+      const note = document.getElementById('journal-input').value.trim();
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10);
+
+      // Streak logic
+      if (state.lastDate !== dateStr) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yStr = yesterday.toISOString().slice(0, 10);
+        if (state.lastDate === yStr) {
+          state.streak += 1;
+        } else {
+          state.streak = 1;
+        }
+        state.lastDate = dateStr;
+      }
+
+      state.sessions.unshift({
+        type: state.currentExercise,
+        held: parseInt(document.getElementById('result-time').textContent),
+        note: note,
+        date: now.toISOString(),
+        guided: state.isGuided
+      });
+
+      // Keep last 50
+      if (state.sessions.length > 50) state.sessions.pop();
+
+      saveData();
+      updateStats();
+      showScreen('home');
+      navTo('home');
+    }
+
+    function renderLog() {
+      const list = document.getElementById('log-list');
+      const empty = document.getElementById('log-empty');
+      list.innerHTML = '';
+
+      if (state.sessions.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      state.sessions.forEach(s => {
+        const d = new Date(s.date);
+        const timeStr = d.toLocaleString(undefined, {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        const typeName = exercises[s.type]?.name || s.type;
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `
+          <div class="log-meta">${timeStr} · ${typeName} · ${s.held}s</div>
+          <div class="log-text">${s.note || '<span style="color:var(--muted)">No note</span>'}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // Boot
+    loadData();
+  </script>
+</body>
+</html>
